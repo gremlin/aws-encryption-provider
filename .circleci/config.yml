@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  goreleaser: hubci/goreleaser@2.1.0
+  gor: hubci/goreleaser@2.1.0
 workflows:
   main-wf:
     jobs:
