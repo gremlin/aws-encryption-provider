@@ -1,0 +1,40 @@
+version: 2.1
+orbs:
+  goreleaser: hubci/goreleaser@2.1.0
+workflows:
+  main-wf:
+    jobs:
+      - cache
+      - gor/release:
+          version: 1.7.0
+          go-version: '1.18'
+          dry-run: true
+  release-wf:
+    jobs:
+      - cache
+      - gor/release:
+          version: 1.7.0
+          go-version: '1.18'
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+jobs:
+  cache:
+    docker:
+      - image: 'cimg/go:1.18'
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+            - go-mod-v1-{{ checksum "go.mod" }}
+            - go-mod-v1
+      - run:
+          name: Download Dependancies
+          command: go mod tidy
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod
