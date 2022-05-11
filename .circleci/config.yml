@@ -38,7 +38,8 @@ workflows:
               only: /^v\d+\.\d+\.\d+$/
 jobs:
   cache:
-    machine: true
+    machine:
+      image: ubuntu-2004:current
     steps:
       - checkout
       - restore_cache:
@@ -54,7 +55,8 @@ jobs:
           paths:
             - /go/pkg/mod
   docker_setup:
-    machine: true
+    machine:
+      image: ubuntu-2004:current
     steps:
       - run: |
           docker login -u "${CONTEXT_GREMLIN_DOCKER_USERNAME}" -p "${CONTEXT_GREMLIN_DOCKER_PASSWORD}"
