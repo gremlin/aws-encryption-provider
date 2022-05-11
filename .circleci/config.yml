@@ -17,6 +17,8 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$/
+      - setup_remote_docker
+      - docker_login
       - gor/release:
           version: 1.7.0
           go-version: '1.18'
@@ -43,3 +45,9 @@ jobs:
           key: go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
             - /go/pkg/mod
+  docker_login:
+    docker:
+      - image: 'cimg/go:1.18'
+    steps:
+      - run: |
+          echo $CONTEXT_GREMLIN_DOCKER_PASSWORD | docker login -u="$CONTEXT_GREMLIN_DOCKER_USERNAME" --password-stdin
