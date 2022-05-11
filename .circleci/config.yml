@@ -38,8 +38,7 @@ workflows:
               only: /^v\d+\.\d+\.\d+$/
 jobs:
   cache:
-    docker:
-      - image: 'cimg/go:1.18'
+    machine: true
     steps:
       - checkout
       - restore_cache:
@@ -55,9 +54,7 @@ jobs:
           paths:
             - /go/pkg/mod
   docker_setup:
-    docker:
-      - image: 'cimg/go:1.18'
+    machine: true
     steps:
-      - setup_remote_docker
       - run: |
           docker login -u "${CONTEXT_GREMLIN_DOCKER_USERNAME}" -p "${CONTEXT_GREMLIN_DOCKER_PASSWORD}"
