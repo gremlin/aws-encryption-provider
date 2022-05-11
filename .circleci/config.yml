@@ -50,4 +50,4 @@ jobs:
     steps:
       - setup_remote_docker
       - run: |
-          echo $CONTEXT_GREMLIN_DOCKER_PASSWORD | docker login -u="$CONTEXT_GREMLIN_DOCKER_USERNAME" --password-stdin
+          docker login -u ${CONTEXT_GREMLIN_DOCKER_USERNAME} -p ${CONTEXT_GREMLIN_DOCKER_PASSWORD}
