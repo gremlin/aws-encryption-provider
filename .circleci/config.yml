@@ -79,5 +79,5 @@ jobs:
           name: Perform release
           command: |
             ~/bin/goreleaser release --skip-publish
-            docker build -f Dockerfile.goreleaser gremlin/aws-encryption-provider:${CIRCLE_TAG} .
+            docker build -f Dockerfile.goreleaser -t gremlin/aws-encryption-provider:${CIRCLE_TAG} .
             docker push gremlin/aws-encryption-provider:${CIRCLE_TAG}
