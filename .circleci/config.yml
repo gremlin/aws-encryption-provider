@@ -9,7 +9,11 @@ workflows:
           context:
             - docker-hub-login
       - install_goreleaser
-      - test
+      - test:
+          requires:
+            - cache
+            - docker_setup
+            - install_goreleaser
   release:
     jobs:
       - cache:
@@ -33,6 +37,10 @@ workflows:
             tags:
               only: /^v\d+\.\d+\.\d+$/
       - release:
+          requires:
+            - cache
+            - docker_setup
+            - install_goreleaser
           filters:
             branches:
               ignore: /.*/
