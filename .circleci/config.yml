@@ -58,8 +58,6 @@ jobs:
   release:
     docker:
       - image: 'cimg/go:1.18'
-    environment:
-      GITHUB_TOKEN: ${CONTEXT_GREMLIN_GITHUB_TOKEN}
     steps:
       - checkout
       - restore_cache:
@@ -80,6 +78,6 @@ jobs:
       - run:
           name: Perform release
           command: |
-            ~/bin/goreleaser release
+            GITHUB_TOKEN=${CONTEXT_GREMLIN_GITHUB_TOKEN} ~/bin/goreleaser release
             docker build -f Dockerfile.goreleaser gremlin/aws-encryption-provider:${CIRCLE_TAG} .
             docker push gremlin/aws-encryption-provider:${CIRCLE_TAG}
