@@ -1,18 +1,16 @@
 version: 2.1
 orbs:
-  gor: hubci/goreleaser@2.1.0
+  gor: ory/goreleaser@0.1.38
 workflows:
-  main-wf:
+  test:
     jobs:
       - cache
       - docker_setup:
           context:
             - docker-hub-login
-      - gor/release:
-          version: 1.7.0
-          go-version: '1.18'
-          dry-run: true
-  release-wf:
+      - install_goreleaser
+      - test
+  release:
     jobs:
       - cache:
           filters:
@@ -28,9 +26,13 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$/
-      - gor/release:
-          version: 1.7.0
-          go-version: '1.18'
+      - install_goreleaser:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+      - release:
           filters:
             branches:
               ignore: /.*/
@@ -49,14 +51,35 @@ jobs:
             - go-mod-v1
       - run:
           name: Download Dependancies
-          command: go mod tidy
+          command: go mod download
       - save_cache:
           key: go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
-            - /go/pkg/mod
+            - ~/go/pkg/mod
   docker_setup:
     machine:
       image: ubuntu-2004:current
     steps:
       - run: |
           docker login -u "${CONTEXT_GREMLIN_DOCKER_USERNAME}" -p "${CONTEXT_GREMLIN_DOCKER_PASSWORD}"
+  install_goreleaser:
+    docker:
+      - image: 'cimg/go:1.18'
+    steps:
+      - run: |
+          dlURL="https://github.com/goreleaser/goreleaser/releases/download/v1.7.0/goreleaser_Linux_x86_64.tar.gz"
+          curl -sSL $dlURL | $SUDO tar -xz -C ~/bin goreleaser
+  test:
+    docker:
+      - image: 'cimg/go:1.18'
+    steps:
+      - run: |
+          goreleaser release --snapshot --skip-publish --rm-dist
+  release:
+    docker:
+      - image: 'cimg/go:1.18'
+    steps:
+      - run: |
+          goreleaser release
+          docker build -f Dockerfile.goreleaser gremlin/aws-encryption-provider:${CIRCLE_TAG} .
+          docker push gremlin/aws-encryption-provider:${CIRCLE_TAG}

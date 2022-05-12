@@ -15,13 +15,6 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
-dockers:
-  - image_templates:
-    - gremlin/aws-encryption-provider
-    - gremlin/aws-encryption-provider:{{ .Tag }}
-    ids:
-    - aws-encryption-provider
-    dockerfile: Dockerfile.goreleaser
 checksum:
   name_template: 'checksums.txt'
 changelog:
