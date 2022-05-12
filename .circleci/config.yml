@@ -4,54 +4,35 @@ orbs:
 workflows:
   test:
     jobs:
-      - cache
-      - docker_setup:
-          context:
-            - docker-hub-login
-      - install_goreleaser
       - test:
-          requires:
-            - cache
-            - docker_setup
-            - install_goreleaser
+          context: docker-hub-login
   release:
     jobs:
-      - cache:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-      - docker_setup:
-          context:
-            - docker-hub-login
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-      - install_goreleaser:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
       - release:
-          requires:
-            - cache
-            - docker_setup
-            - install_goreleaser
+          context: docker-hub-login
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+$/
-jobs:
-  cache:
-    machine:
-      image: ubuntu-2004:current
+commands:
+  install_goreleaser:
+    description: "Installs the goreleaser binary to ~/bin"
+    parameters:
+      version:
+        type: string
+        default: "v1.7.0"
     steps:
-      - checkout
+      - run:
+          name: Install goreleaser
+          command: |
+            dlURL="https://github.com/goreleaser/goreleaser/releases/download/<< parameters.version >>/goreleaser_Linux_x86_64.tar.gz"
+            curl -sSL $dlURL | $SUDO tar -xz -C ~/bin goreleaser
+jobs:
+  test:
+    docker:
+      - image: 'cimg/go:1.18'
+    steps:
       - restore_cache:
           keys:
             - go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
@@ -64,30 +45,35 @@ jobs:
           key: go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
             - ~/go/pkg/mod
-  docker_setup:
-    machine:
-      image: ubuntu-2004:current
-    steps:
       - run: |
           docker login -u "${CONTEXT_GREMLIN_DOCKER_USERNAME}" -p "${CONTEXT_GREMLIN_DOCKER_PASSWORD}"
-  install_goreleaser:
-    docker:
-      - image: 'cimg/go:1.18'
-    steps:
-      - run: |
-          dlURL="https://github.com/goreleaser/goreleaser/releases/download/v1.7.0/goreleaser_Linux_x86_64.tar.gz"
-          curl -sSL $dlURL | $SUDO tar -xz -C ~/bin goreleaser
-  test:
-    docker:
-      - image: 'cimg/go:1.18'
-    steps:
-      - run: |
-          ~/bin/goreleaser release --snapshot --skip-publish --rm-dist
+      - install_goreleaser
+      - run:
+          name: Run tests
+          command: |
+            ~/bin/goreleaser release --snapshot --skip-publish --rm-dist
   release:
     docker:
       - image: 'cimg/go:1.18'
     steps:
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+            - go-mod-v1-{{ checksum "go.mod" }}
+            - go-mod-v1
+      - run:
+          name: Download Dependancies
+          command: go mod download
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          paths:
+            - ~/go/pkg/mod
       - run: |
-          ~/bin/goreleaser release
-          docker build -f Dockerfile.goreleaser gremlin/aws-encryption-provider:${CIRCLE_TAG} .
-          docker push gremlin/aws-encryption-provider:${CIRCLE_TAG}
+          docker login -u "${CONTEXT_GREMLIN_DOCKER_USERNAME}" -p "${CONTEXT_GREMLIN_DOCKER_PASSWORD}"
+      - install_goreleaser
+      - run:
+          name: Perform release
+          command: |
+            ~/bin/goreleaser release
+            docker build -f Dockerfile.goreleaser gremlin/aws-encryption-provider:${CIRCLE_TAG} .
+            docker push gremlin/aws-encryption-provider:${CIRCLE_TAG}
