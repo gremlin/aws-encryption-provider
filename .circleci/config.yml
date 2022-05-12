@@ -33,6 +33,7 @@ jobs:
     docker:
       - image: 'cimg/go:1.18'
     steps:
+      - checkout
       - restore_cache:
           keys:
             - go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
@@ -56,6 +57,7 @@ jobs:
     docker:
       - image: 'cimg/go:1.18'
     steps:
+      - checkout
       - restore_cache:
           keys:
             - go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
