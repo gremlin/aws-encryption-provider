@@ -48,8 +48,6 @@ jobs:
           key: go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
             - ~/go/pkg/mod
-      - run: |
-          docker login -u "${CONTEXT_GREMLIN_DOCKER_USERNAME}" -p "${CONTEXT_GREMLIN_DOCKER_PASSWORD}"
       - install_goreleaser
       - run:
           name: Run tests
@@ -72,11 +70,11 @@ jobs:
           key: go-mod-v1-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
             - ~/go/pkg/mod
+      - install_goreleaser
       - setup_remote_docker:
           docker_layer_caching: false
       - run: |
           docker login -u "${CONTEXT_GREMLIN_DOCKER_USERNAME}" -p "${CONTEXT_GREMLIN_DOCKER_PASSWORD}"
-      - install_goreleaser
       - run:
           name: Perform release
           command: |
