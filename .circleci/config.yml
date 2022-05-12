@@ -9,7 +9,9 @@ workflows:
   release:
     jobs:
       - release:
-          context: docker-hub-login
+          context:
+            - docker-hub-login
+            - github-login
           filters:
             branches:
               ignore: /.*/
@@ -56,6 +58,8 @@ jobs:
   release:
     docker:
       - image: 'cimg/go:1.18'
+    environment:
+      GITHUB_TOKEN: ${CONTEXT_GREMLIN_GITHUB_TOKEN}
     steps:
       - checkout
       - restore_cache:
