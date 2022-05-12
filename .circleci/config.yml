@@ -82,12 +82,12 @@ jobs:
       - image: 'cimg/go:1.18'
     steps:
       - run: |
-          goreleaser release --snapshot --skip-publish --rm-dist
+          ~/bin/goreleaser release --snapshot --skip-publish --rm-dist
   release:
     docker:
       - image: 'cimg/go:1.18'
     steps:
       - run: |
-          goreleaser release
+          ~/bin/goreleaser release
           docker build -f Dockerfile.goreleaser gremlin/aws-encryption-provider:${CIRCLE_TAG} .
           docker push gremlin/aws-encryption-provider:${CIRCLE_TAG}
