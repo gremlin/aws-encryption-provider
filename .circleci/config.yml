@@ -75,6 +75,8 @@ jobs:
       - run: |
           docker login -u "${CONTEXT_GREMLIN_DOCKER_USERNAME}" -p "${CONTEXT_GREMLIN_DOCKER_PASSWORD}"
       - install_goreleaser
+      - setup_remote_docker:
+          docker_layer_caching: false
       - run:
           name: Perform release
           command: |
