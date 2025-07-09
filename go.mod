@@ -11,7 +11,7 @@ require (
 	go.uber.org/zap v1.13.0
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 	google.golang.org/grpc v1.29.1
-	k8s.io/apiserver v0.0.0-20190515064100-fc28ef5782df
+	k8s.io/apiserver v0.15.10
 )
 
 replace github.com/go-critic/go-critic v0.0.0-20181204210945-1df300866540 => github.com/go-critic/go-critic v0.0.0-20190526074819-1df300866540
