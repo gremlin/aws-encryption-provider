@@ -1,3 +1,11 @@
+> [!CAUTION]
+> THIS IS UPDATED VERY SELDOMLY BUT IS IN USE AS OF MARCH 2026!  See this bug for why stupid things happen and the SIG is so slowww:
+> https://github.com/kubernetes-sigs/aws-encryption-provider/pull/150
+
+
+
+
+
 # AWS Encryption Provider
 
 [![GoDoc](https://godoc.org/sigs.k8s.io/aws-encryption-provider?status.svg)](https://godoc.org/sigs.k8s.io/aws-encryption-provider)
