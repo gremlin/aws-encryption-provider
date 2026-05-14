@@ -99,6 +99,11 @@ func TestParseError(t *testing.T) {
 			expected: KMSErrorTypeUserInduced,
 		},
 		{
+			name:     "AccessDeniedException caused by explicit deny in resource policy",
+			err:      &mockAPIError{code: "AccessDeniedException", message: "User dummy is not authorized to perform: kms:Decrypt on this resource with an explicit deny in a resource control policy"},
+			expected: KMSErrorTypeUserInduced,
+		},
+		{
 			name:     "Other AccessDeniedException",
 			err:      &mockAPIError{code: "AccessDeniedException", message: "access denied for some other reason"},
 			expected: KMSErrorTypeOther,
@@ -106,6 +111,11 @@ func TestParseError(t *testing.T) {
 		{
 			name:     "KMSInternalException with timeout message",
 			err:      &mockAPIError{code: (&types.KMSInternalException{}).ErrorCode(), message: "AWS KMS rejected the request because the external key store proxy did not respond in time. Retry the request. If you see this error repeatedly, report it to your external key store proxy administrator"},
+			expected: KMSErrorTypeUserInduced,
+		},
+		{
+			name:     "KMSInternalException with external key store proxy communication failure",
+			err:      &mockAPIError{code: (&types.KMSInternalException{}).ErrorCode(), message: "AWS KMS cannot communicate with the external key store proxy"},
 			expected: KMSErrorTypeUserInduced,
 		},
 		{

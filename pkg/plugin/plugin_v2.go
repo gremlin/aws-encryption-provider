@@ -15,6 +15,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -35,6 +36,7 @@ const (
 
 // Plugin implements the KeyManagementServiceServer
 type V2Plugin struct {
+	pb.UnimplementedKeyManagementServiceServer
 	svc           cloud.AWSKMSv2
 	keyID         string
 	encryptionCtx map[string]string
@@ -89,13 +91,15 @@ func newPluginV2(
 func (p *V2Plugin) Health() error {
 	recent, err := p.healthCheck.isRecentlyChecked()
 	if !recent {
-		encResult, err := p.Encrypt(context.Background(), &pb.EncryptRequest{Plaintext: []byte("foo")})
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		encResult, err := p.Encrypt(ctx, &pb.EncryptRequest{Plaintext: []byte("foo")})
 		p.healthCheck.RecordErr(err)
 		if err != nil {
 			zap.L().Warn("health check failed at encryption", zap.Error(err))
 			return err
 		}
-		_, err = p.Decrypt(context.Background(), &pb.DecryptRequest{Ciphertext: encResult.Ciphertext})
+		_, err = p.Decrypt(ctx, &pb.DecryptRequest{Ciphertext: encResult.Ciphertext})
 		p.healthCheck.RecordErr(err)
 		if err != nil {
 			zap.L().Warn("health check failed at decryption", zap.Error(err))
@@ -178,6 +182,10 @@ func (p *V2Plugin) Decrypt(ctx context.Context, request *pb.DecryptRequest) (*pb
 	zap.L().Debug("starting decrypt operation")
 
 	startTime := time.Now()
+
+	if len(request.Ciphertext) == 0 {
+		return nil, errors.New("invalid empty ciphertext")
+	}
 	storageVersion := kmsplugin.KMSStorageVersion(request.Ciphertext[0])
 	switch storageVersion {
 	case kmsplugin.KMSStorageVersionV2:
